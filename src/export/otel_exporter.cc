@@ -15,8 +15,10 @@
 #include "export/exporter_interface.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <chrono>
 #include <map>
+#include <unistd.h>
 
 namespace {
 
@@ -270,10 +272,15 @@ class OTelExporter : public StatsExporter {
   std::vector<shared_ptr<BasicColumn>> columns;
 };
 
-const char* GetAHostname(const char* fallback) {
+std::string GetAHostname(const char* fallback) {
   const char* env = getenv("HOSTNAME");
   if (env && *env)
     return env;
+  char buf[256];
+  if (gethostname(buf, sizeof(buf)) == 0) {
+    buf[sizeof(buf) - 1] = '\0';
+    return buf;
+  }
   return fallback;
 }
 
